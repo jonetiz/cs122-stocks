@@ -1,0 +1,45 @@
+body {
+    top: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.home_page {
+    display: flex;
+}
+
+
+.left_panel {
+    padding: 15px;
+    flex: 2;
+}
+
+.right_panel {
+    padding: 15px;
+    flex: 1;
+}
+
+.controlBar {
+    display: flex;
+}
+
+.controlBar > .dash-dropdown {
+    flex: 1;
+}
+
+table {
+    flex: 1;
+    width: 100%;
+}
+
+table > thead {
+    background-color: #cacaca;
+}
+
+table > tbody > tr {
+    border-bottom: 1px solid #cacaca;
+}
+
+th {
+    padding: 5px;
+
+}
