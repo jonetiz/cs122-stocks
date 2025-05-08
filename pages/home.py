@@ -137,7 +137,6 @@ def show_watchlist_item(n_clicks):
     }
 
     def intraday_graph(df, title):
-        mod_df = pd.melt(df.reset_index().rename(columns={'index':'time'}).drop(columns=['volume']), id_vars='time')
         first = df[df.index == df.index.min()]
         last = df[df.index == df.index.max()]
         up: bool = float(last['close']) > float(first['close'])
@@ -149,6 +148,7 @@ def show_watchlist_item(n_clicks):
         return fig
 
     def line_graph(df, title):
+        mod_df = pd.melt(df.reset_index().rename(columns={'index':'date'}).drop(columns=['volume']), id_vars='date')
         fig = px.line(mod_df, x='date', y='value', color='variable', color_discrete_sequence=["grey", "green", "red", "blue"],
                       labels=labels, title=title)
         return fig
