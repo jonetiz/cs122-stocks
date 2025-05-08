@@ -15,9 +15,6 @@ dash.register_page(__name__, path='/')
 
 tickers = api.tickers()
 
-# stock_graph = px.line(df, x='time', y='price', color='ticker')
-
-# TODO: Load and save from/to cache 
 watchlist = api.get_watchlist()
 
 layout = html.Div([
@@ -141,7 +138,10 @@ def show_watchlist_item(n_clicks):
 
     def intraday_graph(df, title):
         mod_df = pd.melt(df.reset_index().rename(columns={'index':'time'}).drop(columns=['volume']), id_vars='time')
-        fig = px.line(mod_df, x='time', y='value', color='variable', color_discrete_sequence=["grey", "green", "red", "blue"],
+        first = df[df.index == df.index.min()]
+        last = df[df.index == df.index.max()]
+        up: bool = float(last['close']) > float(first['close'])
+        fig = px.line(df, y='close', color_discrete_sequence=["green" if up else "red"],
                       labels=labels, title=title)
         
         # TODO: skip weekends
@@ -149,7 +149,6 @@ def show_watchlist_item(n_clicks):
         return fig
 
     def line_graph(df, title):
-        mod_df = pd.melt(df.reset_index().rename(columns={'index':'date'}).drop(columns=['volume']), id_vars='date')
         fig = px.line(mod_df, x='date', y='value', color='variable', color_discrete_sequence=["grey", "green", "red", "blue"],
                       labels=labels, title=title)
         return fig
