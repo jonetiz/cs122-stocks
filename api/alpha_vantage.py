@@ -7,8 +7,11 @@ API_KEY = getenv('ALPHA_VANTAGE_API_KEY')
 
 # Alpha Vantage has a 25-per-day limit on API calls (for free use), so these are used sparingly.
 
-def get_full_ticker_history(ticker):
+def get_full_ticker_history(ticker: str) -> dict:
     """Retrieves the ticker's full history; """
+
+    # make the request to alpha vantage api
+    # documentation: https://www.alphavantage.co/documentation/#daily
     url = f"{API_ENDPOINT}function=TIME_SERIES_DAILY&symbol={ticker}&outputsize=full&apikey={API_KEY}"
     request = requests.get(url)
     data = request.json()
@@ -19,6 +22,8 @@ def get_full_ticker_history(ticker):
     timeseries_data = data.get('Time Series (Daily)')
     try:
         for date in timeseries_data:
+
+            # convert string date to timestamp
             timestamp = int(datetime.strptime(date, '%Y-%m-%d').timestamp())
             data_dict = timeseries_data[date]
             history[timestamp] = {
