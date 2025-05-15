@@ -6,8 +6,9 @@ By Jonathan Etiz for CS 122 at San Jose State University
 
 ## Features (non-exclusive)
 - Robust user interface with a focus on simplicity
-- Add specific stocks or indexes to track
-- **Simple moving average** calculation for varied time periods
+- Add specific stocks to track
+- Get news from multiple sources on tracked stocks
+- **Simple moving average** analysis for varied time periods
 
 ## Interface Plan
 SimpleStocks is served as a single-page application, with no bloated or unnecessary features to make the experience as user-friendly and seamless as possible. The main interface includes an adjustable time series graph for specified stocks, along with a list of the stocks to be tracked.
@@ -19,7 +20,8 @@ The data is sourced from the [**Alpha Vantage API**](https://www.alphavantage.co
 
 Both APIs are used for the following:
 - Alpha Vantage
-  - Only used to retrieve full history on stock data
+  - Retrieve full historical OHLC data (Polygon limits to 2 years history for free tier)
+  - Get news feed
 - Polygon
   - Retrieve recent trading data (which updates cached alpha vantage data)
   - Retrieve list of all tickers
