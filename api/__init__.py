@@ -75,3 +75,9 @@ def get_splits(ticker: str) -> dict:
     """Get all splits for a specified ticker."""
 
     return caching.get(f'splits.{ticker}', polygon.get_splits, None, ticker=ticker)
+
+def get_news(ticker: str) -> dict:
+    """Returns news from Alpha Vantage API about the specified ticker."""
+
+    # only get news once a day to save API calls
+    return caching.get(f"news.{ticker if ticker is not None else 'ALL'}", alpha_vantage.get_news, None, ticker=ticker)

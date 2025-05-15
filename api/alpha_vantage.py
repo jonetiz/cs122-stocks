@@ -38,3 +38,13 @@ def get_full_ticker_history(ticker: str) -> dict:
         return None
 
     return history
+
+def get_news(ticker: str) -> dict:
+
+    # make request to alpha vantage API
+    # documentation: https://www.alphavantage.co/documentation/#news-sentiment
+    url = f"{API_ENDPOINT}function=NEWS_SENTIMENT{'&symbols=' + ticker if ticker else ''}&apikey={API_KEY}"
+    request = requests.get(url)
+    data = request.json()
+    
+    return data.get('feed')

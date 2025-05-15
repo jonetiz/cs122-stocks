@@ -19,44 +19,50 @@ tickers = api.tickers()
 watchlist = api.get_watchlist()
 
 # HTML layout
-layout = html.Div([
-    # left side panel
-    html.Div([
-        html.H3("SimpleStocks"),
-        dcc.Tabs([
-            dcc.Tab(label="5D", id="graphtab_5d"),
-            dcc.Tab(label="1M", id="graphtab_1m"),
-            dcc.Tab(label="6M", id="graphtab_6m"),
-            dcc.Tab(label="YTD", id="graphtab_ytd"),
-            dcc.Tab(label="1Y", id="graphtab_1y"),
-            dcc.Tab(label="5Y", id="graphtab_5y"),
-            dcc.Tab(label="Max", id="graphtab_max"),
-        ])
-    ], className="left_panel"),
-
-    # watchlist / right side panel
-    html.Div([
-        html.H3("Ticker Watchlist"),
-        html.Div([dcc.Dropdown(id="ticker_search"), dbc.Button(
-            "Add", color="primary", id="add_ticker_btn")], id="options", className="controlBar"),
-        dcc.Loading([
-            html.Table([
-                html.Thead(
-                    [html.Tr([html.Th("Ticker"), html.Th("Last Close"), html.Th("Options")])]),
-                html.Tbody([], id="watchlist_items")
+def layout():
+    return html.Div([
+        dcc.Location(id='url'),
+        # left side panel
+        html.Div([
+            html.H3("SimpleStocks"),
+            dcc.Tabs([
+                dcc.Tab(label="5D", id="graphtab_5d"),
+                dcc.Tab(label="1M", id="graphtab_1m"),
+                dcc.Tab(label="6M", id="graphtab_6m"),
+                dcc.Tab(label="YTD", id="graphtab_ytd"),
+                dcc.Tab(label="1Y", id="graphtab_1y"),
+                dcc.Tab(label="5Y", id="graphtab_5y"),
+                dcc.Tab(label="Max", id="graphtab_max"),
             ])
-        ])
-    ], className="right_panel")
+        ], className="left_panel"),
+
+        # watchlist / right side panel
+        html.Div([
+            html.H3("Ticker Watchlist"),
+            html.Div([dcc.Dropdown(id="ticker_search"), dbc.Button(
+                "Add", color="primary", id="add_ticker_btn")], id="options", className="controlBar"),
+            dcc.Loading([
+                html.Table([
+                    html.Thead(
+                        [html.Tr([html.Th("Ticker"), html.Th("Last Close"), html.Th("Options")])]),
+                    html.Tbody([], id="watchlist_items")
+                ])
+            ])
+        ], className="right_panel")
 ], className="home_page")
 
 # when ticker search value is updated, update options with this function
 @callback(
     Output("ticker_search", "options"),
-    Input("ticker_search", "search_value")
+    Input("ticker_search", "search_value"),
+    Input('url', 'pathname')
 )
-def update_ticker_search(search_value: str) -> list:
+def update_ticker_search(search_value: str, pathname) -> list:
     """Update ticker search dropdown options based on search value"""
 
+    if pathname != '/':
+        raise PreventUpdate
+    
     # don't update if there's no search value (prevents clientside errrorr)
     if not search_value:
         raise PreventUpdate
@@ -93,10 +99,14 @@ def update_ticker_search(search_value: str) -> list:
         Input('add_ticker_btn', 'n_clicks'),
         Input({'type': 'remove_watchlist_item', 'index': ALL}, "n_clicks")
     ],
-    State('ticker_search', 'value')
+    State('ticker_search', 'value'),
+    Input('url', 'pathname')
 )
-def update_watchlist(n_clicks, _, ticker):
+def update_watchlist(n_clicks, _, ticker, pathname):
     """Handles addition and deletion from the watchlist"""
+
+    if pathname != '/':
+        raise PreventUpdate
 
     # get the DOM ID of the instantiating button
     input_id = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
@@ -124,12 +134,14 @@ def update_watchlist(n_clicks, _, ticker):
     return [
         html.Tr(
             [
-                html.Td(f"{item} | {tickers[item]}"),
+                html.Td(dcc.Link(f"{item} | {tickers[item]}", href=f'/news/{item}', target='_blank')),
                 html.Td(f"${watchlist[item]}"),
-                dbc.Button("Show", color="secondary", id={
-                           "type": "show_watchlist_item", "index": item}),
-                dbc.Button("Remove", color="danger", id={
-                           "type": "remove_watchlist_item", "index": item})
+                html.Td([
+                    dbc.Button("Show", color="secondary", id={
+                            "type": "show_watchlist_item", "index": item}),
+                    dbc.Button("Remove", color="danger", id={
+                            "type": "remove_watchlist_item", "index": item})
+                ])
             ],
             id={"type": "watchlist_item", "index": item})
         for item in watchlist
@@ -148,17 +160,24 @@ def update_watchlist(n_clicks, _, ticker):
         Output('graphtab_max', 'children')
     ],
     Input({'type': 'show_watchlist_item', 'index': ALL}, 'n_clicks'),
+    Input('url', 'pathname'),
     prevent_initial_call=True
 )
-def show_watchlist_item(n_clicks):
+def show_watchlist_item(n_clicks, pathname):
     """Logic for generating and displaying the graph tabs"""
 
+    if pathname != '/':
+        raise PreventUpdate
+    
     # do not update if watchlist is 0 to prevent clientside error
     if len(watchlist) == 0:
         raise PreventUpdate
     
     # get ticker of pressed button
     input_id = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
+    if input_id == 'url':
+        raise PreventUpdate
+
     ticker = json.loads(input_id).get('index')
 
     # get history and load to dataframe
@@ -276,7 +295,7 @@ def show_watchlist_item(n_clicks):
             html.Table([
                 html.Tr([
                     html.Th("Open"), html.Td(df[df.index == df.index.min()]['open']), html.Th("Volume Traded"), html.Td(df['volume'].sum(
-                    )), html.Th(""), html.Td([dcc.Link("News", href=f"https://finance.yahoo.com/quote/{ticker}/news/", target="blank")])
+                    )), html.Th(""), html.Td([dcc.Link("News", href=f"/news/{ticker}/", target="_blank")])
                 ]),
                 html.Tr([
                     html.Th("High"), html.Td(df['high'].max()), html.Th(
